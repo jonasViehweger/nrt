@@ -14,7 +14,6 @@
 # limitations under the Licence.
 
 import numpy as np
-import xarray as xr
 
 from nrt.monitor import BaseNrt
 

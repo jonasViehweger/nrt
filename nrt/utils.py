@@ -15,7 +15,6 @@
 
 import datetime
 import inspect
-from math import pi
 
 import pandas as pd
 import numpy as np

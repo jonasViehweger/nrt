@@ -49,7 +49,6 @@ copyright statement below.
 import numpy as np
 import numba
 
-from nrt.log import logger
 from nrt import utils
 from nrt.utils_efp import history_roc
 from nrt.stats import nanlstsq, mad, bisquare
