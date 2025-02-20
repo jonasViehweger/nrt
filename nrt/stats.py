@@ -152,3 +152,12 @@ def nan_percentile_axis0(arr, percentiles):
         out[:,i] = np.nanpercentile(arr[:,i], percentiles)
     shape = (out.shape[0], *shape[1:])
     return out.reshape(shape)
+
+
+@numba.jit(nopython=True, cache=True)
+def scale_array(arr, min_val, max_val):
+    # Ensure min_val is actually the lower bound and max_val is the upper bound
+    arr_clipped = np.clip(arr, min(min_val, max_val), max(min_val, max_val))
+    # Invert the scaling if min_val > max_val
+    return (max_val - arr_clipped) / (max_val - min_val)
+

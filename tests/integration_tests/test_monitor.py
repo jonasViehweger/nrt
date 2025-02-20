@@ -40,6 +40,19 @@ def test_fit_monitor(monitor_cls, kwargs, beta,
         monitor_.monitor(array=array, date=date)
     monitor_._report(layers=['mask', 'detection_date'],
                      dtype=np.int16)
+    
+
+@pytest.mark.parametrize('monitor_cls, kwargs, beta', monitor_params.values(),
+                         ids=monitor_params.keys())
+def test_fit_monitor_weighted(monitor_cls, kwargs, beta,
+                     ndvi_history, ndvi_monitoring_numpy, forest_mask):
+    monitor_ = monitor_cls(**kwargs, mask=forest_mask)
+    monitor_.fit(dataarray=ndvi_history, **kwargs)
+    assert monitor_.beta.shape[0] == beta
+    for array, date in zip(*ndvi_monitoring_numpy):
+        monitor_.monitor(array=array, date=date, weights=array, scale=(0, 5000))
+    monitor_._report(layers=['mask', 'detection_date'],
+                     dtype=np.int16)
 
 
 @pytest.mark.parametrize('monitor_cls, kwargs, beta', monitor_params.values(),

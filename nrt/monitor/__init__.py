@@ -28,6 +28,7 @@ from rasterio.crs import CRS
 from affine import Affine
 
 from nrt.utils import build_regressors
+from nrt.stats import scale_array
 from nrt.fit_methods import ols, rirls, ccdc_stable_fit, roc_stable_fit
 from nrt.outliers import ccdc_rirls, shewhart
 from nrt.utils_efp import _cusum_rec_test_crit
@@ -256,7 +257,7 @@ class BaseNrt(metaclass=abc.ABCMeta):
     def fit(self):
         pass
 
-    def monitor(self, array, date, update_mask=None):
+    def monitor(self, array, date, update_mask=None, weights=None, scale=(0,1)):
         """Monitor given a new acquisition
 
         The method takes care of (1) predicting the expected pixels values,
@@ -269,6 +270,15 @@ class BaseNrt(metaclass=abc.ABCMeta):
             date (datetime.datetime): Date of acquisition of data contained in
                 the array
             update_mask (bool): Override ``update_mask`` instance attribute
+            weights (np.ndarray): 2D array containing weights for the 
+                acquisitions. If set, residuals will be multipliedby this array.
+                Useful if observation quality is known as a probability, not just
+                a binary value (e.g. cloud probability 0-100).
+            scale (int, int): Minimum and maximum values of the weights. The
+                weights array will be clipped to these values and rescaled to 
+                a range of 0-1. For example if cloud probabilty of 0-100 is available
+                the scale would be set to (100, 0) to lower the weight of pixels 
+                with a high cloud probability.
         """
         update = update_mask if update_mask is not None else self.update_mask
         if not isinstance(date, datetime.date):
@@ -281,6 +291,9 @@ class BaseNrt(metaclass=abc.ABCMeta):
         is_valid = np.logical_and(self.mask == 1, np.isfinite(array))
         is_valid = self._detect_extreme_outliers(residuals=residuals,
                                                  is_valid=is_valid)
+        # apply weights to residuals after throwing out outliers
+        if weights is not None:
+            residuals = residuals*scale_array(weights, scale[0], scale[1])
         self._update_process(residuals=residuals, is_valid=is_valid)
         if update:
             is_break = self._detect_break()

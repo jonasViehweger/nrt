@@ -40,3 +40,18 @@ def test_nan_percentile_axis0():
     q_numpy = np.nanpercentile(test_data, [75 ,25], 0)
 
     np.testing.assert_allclose(q_numba, q_numpy)
+
+def test_scale_array():
+    # Example array with values from 0 to 255
+    weights = np.array([[0, 50, 100], [-100, 200, 25]])
+
+    # Scale between 0 and 1 with min=30 and max=255
+    scaled_weights = st.scale_array(weights, 0, 100)
+
+    np.testing.assert_allclose(
+        scaled_weights, 
+        np.array([
+            [0.  , 0.5 , 1.  ],
+            [0.  , 1.  , 0.25]])
+        )
+
